@@ -13,3 +13,4 @@ E:\repo\MP3Player\CherryStudio\CherryStudio\obj\Debug\CherryStudio.csproj.Genera
 E:\repo\MP3Player\CherryStudio\CherryStudio\obj\Debug\CherryStudio.exe
 E:\repo\MP3Player\CherryStudio\CherryStudio\obj\Debug\CherryStudio.pdb
 E:\repo\MP3Player\CherryStudio\CherryStudio\obj\Debug\CherryStudio.icon.resources
+E:\repo\MP3Player\CherryStudio\CherryStudio\obj\Debug\App.baml
