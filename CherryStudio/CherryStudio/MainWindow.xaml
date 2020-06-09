@@ -4,6 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CherryStudio"
+<<<<<<< HEAD
+=======
+        Style="{StaticResource CustomWindowChrome}"
+>>>>>>> 加入最爱列表/优化界面及播放事件
         mc:Ignorable="d"
         Title="Cherry Studio" Height="700" Width="1050">
     <Grid>
@@ -32,7 +36,11 @@
 
                     <!--<Line X1="50" Y1="20" X2="400" Y2="20" Stroke="Red" StrokeThickness="10"></Line>-->
                     <!--#本地音乐-->
+<<<<<<< HEAD
                     <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}">
+=======
+                    <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}" Click="btnShowItemsList">
+>>>>>>> 加入最爱列表/优化界面及播放事件
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="40" Margin="20 0 0 0">
                             <TextBlock Text="&#xe609;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28"/>
                             <TextBlock Text="本地音乐" VerticalAlignment="Center" Foreground="#ebecec" FontSize="16" Margin="10 0 0 0" Background="{x:Null}"/>
@@ -53,7 +61,11 @@
                         </StackPanel>
                     </Button>
                     <!--#我喜欢的歌-->
+<<<<<<< HEAD
                     <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}">
+=======
+                    <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}" Click="btnShowLiked">
+>>>>>>> 加入最爱列表/优化界面及播放事件
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="40" Margin="20 0 0 0">
                             <TextBlock Text="&#xe619;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28"/>
                             <TextBlock Text="我喜欢的音乐" VerticalAlignment="Center" Foreground="#ebecec" FontSize="16" Margin="10 0 0 0" Background="{x:Null}"/>
@@ -95,7 +107,11 @@
                 </Grid>
                 <!--列表栏-->
                 <Grid Grid.Row="1">
+<<<<<<< HEAD
                     <ListView Name="musiclist" Background="White" SelectionChanged="musiclist_SelectionChanged" BorderBrush="{x:Null}" Foreground="{x:Null}">
+=======
+                    <ListView Name="musiclist" Background="White" Foreground="Black" MouseDoubleClick="musiclist_MouseDoubleClick">
+>>>>>>> 加入最爱列表/优化界面及播放事件
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" />
@@ -144,7 +160,11 @@
                     </StackPanel>
                     <!--#收藏/播放模式/音量/列表-->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="24 0 0 0">
+<<<<<<< HEAD
                         <TextBlock Text="&#xe619;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28"/>
+=======
+                        <Button Content="&#xe619;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click ="btnLike"/>
+>>>>>>> 加入最爱列表/优化界面及播放事件
                         <TextBlock Text="&#xe66c;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Margin="20 0 0 0"/>
                         <TextBlock Text="&#xe62e;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Margin="20 0 2 0"/>
                         <ProgressBar Minimum="0" Maximum="100" Value="75" Height="3" Width="120" Foreground="#d81b60" Background="#FFEBECEC" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>

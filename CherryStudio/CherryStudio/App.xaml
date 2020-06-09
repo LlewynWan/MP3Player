@@ -56,5 +56,64 @@
             </Setter>
         </Style>
 
+<<<<<<< HEAD
+=======
+
+        <Style x:Key="CustomWindowMenuBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="Opacity" Value="0.2"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock FontSize="25" Text="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="1.0"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="CustomWindowTemplate" TargetType="Window">
+            <Border Margin="3" Background="Black" MouseLeftButtonDown="CustomWindow_MouseLeftButtonDown">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="3" RenderingBias="Performance" ShadowDepth="0" Opacity="1"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"
+                                   Text="{TemplateBinding Title}" Foreground="#FFD81B60" FontSize="20"></TextBlock>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top">
+                            <Button Height="20" Width="20" Content="-"
+                                Style="{StaticResource ResourceKey=CustomWindowMenuBtn}" Click="CustomWindowMinimize_Click" />
+                            <Button Height="20" Width="20" Content="⭕"
+                                Style="{StaticResource ResourceKey=CustomWindowMenuBtn}" Click="CustomWindowMaximize_Click" />
+                            <Button Height="20" Width="20" Content="×"
+                                Style="{StaticResource ResourceKey=CustomWindowMenuBtn}" Click="CustomWindowClose_Click" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <AdornerDecorator>
+                            <ContentPresenter></ContentPresenter>
+                        </AdornerDecorator>
+                    </Grid>
+                </Grid>
+            </Border>
+        </ControlTemplate>
+
+        <Style x:Key="CustomWindowChrome" TargetType="Window">
+            <Setter Property="AllowsTransparency" Value="True"></Setter>
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="WindowStyle" Value="None"></Setter>
+            <Setter Property="Template" Value="{StaticResource CustomWindowTemplate}"></Setter>
+        </Style>
+
+>>>>>>> 加入最爱列表/优化界面及播放事件
     </Application.Resources>
 </Application>
