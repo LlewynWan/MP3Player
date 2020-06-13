@@ -6,7 +6,6 @@
         xmlns:local="clr-namespace:CherryStudio"
         mc:Ignorable="d"
         Title="Cherry Studio" Height="700" Width="1050">
-    <!--="{StaticResource CustomWindowChrome}"-->
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="260"/>
@@ -17,6 +16,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="120"/>
                 <RowDefinition/>
+                <RowDefinition Height="120"/>
             </Grid.RowDefinitions>
             <!--#图标-->
             <Grid>
@@ -45,6 +45,11 @@
                             <TextBlock Text="&#xe67f;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="32"/>
                             <TextBlock Text="歌手" VerticalAlignment="Center" Foreground="#ebecec" FontSize="16" Margin="10 0 0 0" Background="{x:Null}"/>
                         </StackPanel>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="All" Name="selectSinger" Click="selectSinger_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
                     </Button>
                     <!--#专辑-->
                     <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}">
@@ -52,6 +57,11 @@
                             <TextBlock Text="&#xe64b;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28"/>
                             <TextBlock Text="专辑" VerticalAlignment="Center" Foreground="#ebecec" FontSize="16" Margin="10 0 0 0" Background="{x:Null}"/>
                         </StackPanel>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="All" Name="selectAlbum" Click="selectAlbum_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
                     </Button>
                     <!--#我喜欢的歌-->
                     <Button Background="#0b0711" HorizontalContentAlignment="Left" Foreground="{x:Null}" BorderBrush="{x:Null}" Click="btnShowLiked">
@@ -76,6 +86,10 @@
                 </StackPanel>
 
             </Grid>
+            <!--统计时长-->
+            <Grid Grid.Row="2">
+                <Label Name="TotalTime" Content="统计时长 00m00s" Foreground="#ebecec" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+            </Grid>
 
         </Grid>
         <!--#右栏-->
@@ -96,17 +110,17 @@
                 </Grid>
                 <!--列表栏-->
                 <Grid Grid.Row="1">
-                    <ListView Name="musiclist" Background="White" Foreground="Black" MouseDoubleClick="musiclist_MouseDoubleClick" >
+                    <ListView Name="musiclist" Background="White" Foreground="Black" MouseDoubleClick="musiclist_MouseDoubleClick" Margin="0,0,0.2,-0.2">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" />
+                                <GridViewColumn Header="播放列表" DisplayMemberBinding="{Binding Name}" Width="770"/>
                             </GridView>
                         </ListView.View>
                         <ListView.ContextMenu>
-                        <ContextMenu Name="action_delete">
-                            <MenuItem Header="删除" Name="delete" Click="delete_Click"/>
-                        </ContextMenu>
-                    </ListView.ContextMenu>
+                            <ContextMenu Name="action_delete">
+                                <MenuItem Header="删除" Name="delete" Click="delete_Click"/>
+                            </ContextMenu>
+                        </ListView.ContextMenu>
 
                     </ListView>
 
@@ -132,28 +146,30 @@
                     </Grid.ColumnDefinitions>
                     <!--#图片/歌曲/歌手-->
                     <StackPanel Orientation="Horizontal">
-                        <Label Width="60" Height="60" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="14 0 5 0">
+                        <Label Width="60" Height="60" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="14 0 5 0" BorderBrush="#FFEBECEC">
                             <Image Source="musicPic_default.png"/>
                         </Label>
-                        <TextBlock Text="歌曲名 - 歌手" FontSize="13" Foreground="#ebecec" VerticalAlignment="Center" Name="musicName"/>
-                        <!--<TextBlock Text="-" FontSize="16" Foreground="#ebecec" VerticalAlignment="Center"/>
-                        <TextBlock Text="歌手" FontSize="16" Foreground="#ebecec" VerticalAlignment="Center"/>-->
+                        <StackPanel Orientation="Vertical">
+                        <TextBlock Text="歌曲名 - 歌手" FontSize="13" Foreground="#ebecec" VerticalAlignment="Center" Name="musicName" Margin="0 35 0 0"/>
+                            <TextBlock Name="curVtot" Text="00:00/00:00" FontSize="13" Foreground="#ebecec" VerticalAlignment="Center" Margin="0 10 0 0"/>
+                        </StackPanel>
                     </StackPanel>
                     <!--#上一首/播放/暂停/下一首-->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Content="&#xe62f;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="26" Margin="5 0 0 0" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click="btnPrevious_Click"/>
                         <Button Content="&#xe610;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="30" Margin="20 0 0 0" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click="btnPlay_Click"/>
                         <Button Content="&#xe606;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="32" Margin="20 0 0 0" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click="btnPause_Click"/>
-                        <Button Content="&#xe62e;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="26" Margin="20 0 0 0" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click="btnNext_Click"/>
+                        <Button Name="btnNext" Content="&#xe62e;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="26" Margin="20 0 0 0" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click="btnNext_Click"/>
                     </StackPanel>
                     <!--#收藏/播放模式/音量/列表-->
+
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="20 0 0 0">
                         <Button Content="&#xe619;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Background="{x:Null}" BorderBrush="{x:Null}" Style="{DynamicResource MyButton}" Click ="btnLike"/>
                         <TextBlock Text="&#xe66c;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Margin="20 0 0 0"/>
                         <TextBlock Text="&#xe63c;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="32" Margin="20 0 2 0"/>
-                        <ProgressBar Minimum="0" Maximum="100" Value="75" Height="3" Width="120" Foreground="#d81b60" Background="#FFEBECEC" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"/>
-                        <TextBlock Text="&#xe724;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Margin="20 0 0 0"/>
-                        <TextBlock Text="&#xe773;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="32" Margin="20 0 0 0"/>
+                        <ProgressBar Name="musicVolume" Minimum="0" Maximum="100" Value="25" Height="3" Width="120" Foreground="#d81b60" Background="#FFEBECEC" MouseDown="musicVolume_MouseDown"/>
+                        <Button Content="&#xe634;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="28" Margin="20 0 0 0" Background="{x:Null}" Style="{DynamicResource MyButton}" Click="btnLyricShow"/>
+                        <Button Content="&#xe773;" FontFamily="/#iconfont" VerticalAlignment="Center" Foreground="#d81b60" FontSize="32" Margin="15 0 0 0"  Background="{x:Null}" Style="{DynamicResource MyButton}" Click="btnSpeed"/>
                     </StackPanel>
 
                 </Grid>

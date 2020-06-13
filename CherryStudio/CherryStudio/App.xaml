@@ -85,8 +85,10 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
-                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"
-                                   Text="{TemplateBinding Title}" Foreground="#FFD81B60" FontSize="20"></TextBlock>
+                        <Image HorizontalAlignment="Left" VerticalAlignment="Center" Height="25" Width="25" Margin="10,0,0,0"
+                               Source="{TemplateBinding Icon}"></Image>
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Margin="40,0,0,0"
+                                   Text="{TemplateBinding Title}" Foreground="#FFD81B60" FontSize="15"></TextBlock>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top">
                             <Button Height="20" Width="20" Content="-"
                                 Style="{StaticResource ResourceKey=CustomWindowMenuBtn}" Click="CustomWindowMinimize_Click" />

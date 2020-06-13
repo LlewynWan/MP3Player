@@ -15,22 +15,24 @@ using System.IO;
 using Microsoft.Win32;
 using System.Threading;
 using System.ComponentModel;
-
 using WMPLib;
 using System.Windows.Threading;
 
+
 namespace CherryStudio
 {
+    //歌曲信息
     public class musicInfo
     {
         public string Name { get; set; }
         public string Url { get; set; }
+
         public object Clone()
         {
             return this.MemberwiseClone();
         }
     }
-
+    //歌词
     class Lyric
     {
         public int minute;
@@ -38,7 +40,7 @@ namespace CherryStudio
         public float totalSec;
         public string strLyric;
     }
-
+    //歌词文件
     class LyricFile
     {
         public int pos = 0;
@@ -46,6 +48,7 @@ namespace CherryStudio
 
         public void LoadFromFile(string fileName)
         {
+            pos = 0;
             FileStream fs = new FileStream(fileName, FileMode.Open);
             StreamReader sr = new StreamReader(fs, Encoding.GetEncoding("gb2312"));
 
@@ -76,27 +79,29 @@ namespace CherryStudio
     /// MainWindow.xaml 的交互逻辑
     public partial class MainWindow : Window
     {
-        List<musicInfo> items = new List<musicInfo>();
-        List<musicInfo> favourite_list = new List<musicInfo>();
+        List<musicInfo> items = new List<musicInfo>();//上传列表
+        List<musicInfo> favourite_list = new List<musicInfo>();//喜爱列表
 
-        //private MediaPlayer mediaPlayer = new MediaPlayer();
         private WMPLib.WindowsMediaPlayer wplayer = new WMPLib.WindowsMediaPlayer();
-        List<string> urlList = new List<string>();
-        List<string> favorurlList = new List<string>();
+        List<string> urlList = new List<string>();//上传列表URL
+        List<string> favourList = new List<string>();//喜爱列表URL
         double max, min;//控制processbar
         DispatcherTimer timer = new DispatcherTimer();
 
-
         double currentTime;
+        double totalSeconds = 0;
 
-        Thread PlayerLyricThread;
         LyricWindow lyric_window;
+
+
 
         public MainWindow()
         {
             InitializeComponent();
-            timer.Interval = TimeSpan.FromSeconds(1);
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            timer.Interval = TimeSpan.FromSeconds(0.5);
             timer.Tick += timer_Tick;
+            timer.Tick += LyricControl;
             //timer.Start();
         }
 
@@ -104,46 +109,85 @@ namespace CherryStudio
         //进度条
         void timer_Tick(object sender,EventArgs e)
         {
-            //musicProgress.Value = wplayer.controls.currentPosition;
+            if (wplayer.playState == WMPPlayState.wmppsPlaying)
+            {
+                totalSeconds += 0.5;
+                int ts = (int)totalSeconds;
+                int minute = (ts / 60) % 60;
+                int second = ts % 60;
+                string totalTime = "统计时长 "
+                    + minute.ToString().PadLeft(2, '0') + "m"
+                    + second.ToString().PadLeft(2, '0') + "s";
+                Action action = () => TotalTime.Content = totalTime;
+                var dispatcher = TotalTime.Dispatcher;
+                if (dispatcher.CheckAccess())
+                    action();
+                else
+                    dispatcher.Invoke(action);
+            }
+
             max = wplayer.currentMedia.duration;
             min = wplayer.controls.currentPosition;
+
+            int tot_min = (int)Math.Round(max) / 60;
+            int tot_sec = (int)Math.Round(max) % 60;
+            int cur_min = (int)Math.Round(min) / 60;
+            int cur_sec = (int)Math.Round(min) % 60;
+            string cur_tot = tot_min.ToString().PadLeft(2,'0') + ":"
+                + tot_sec.ToString().PadLeft(2,'0') + "/" 
+                + cur_min.ToString().PadLeft(2,'0') + ":" 
+                + cur_sec.ToString().PadLeft(2,'0');
+            Action _action = () => curVtot.Text = cur_tot;
+            var _dispatcher = curVtot.Dispatcher;
+            if (_dispatcher.CheckAccess())
+                _action();
+            else
+                _dispatcher.Invoke(_action);
+
             musicProgress.Maximum = (int)(max);
             musicProgress.Value = (int)(min);
-
+            if (musicProgress.Value == 0 && wplayer.playState == WMPPlayState.wmppsStopped)
+                btnNext.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
 
 
-        //进度条拖动
-        //private void musicProgress_KeyDown(object sender, KeyEventArgs e)
-        //{
-        //    while (wplayer.playState.Equals(3))
-        //    {
-        //        if (e.Key == Key.Right && (min + 10) <= max)
-        //        {
-        //            musicProgress.Value += 10;
-        //        }
-        //        else
-        //        {
-        //            musicProgress.Value = max;
-        //        }
-        //        if (e.Key == Key.Left && (min - 10) >= 0)
-        //        {
-        //            musicProgress.Value -= 10;
-        //        }
-        //        else
-        //        {
-        //            musicProgress.Value = 0;
-        //        }
-        //    }
-        //}
+        //进度条拖动MouseDown
+        private void progressBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point p0 = e.GetPosition(musicProgress);
+            musicProgress.Value = (p0.X / musicProgress.Width) * max;
+            min = musicProgress.Value;
+            e.Handled = true;
+        }
 
 
+        //进度条拖动MouseUp
+        private void progressBar_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            timer.Stop();
+            wplayer.controls.currentPosition = musicProgress.Value;
+            timer.Start();
+        }
+
+
+        //音量调节
+        private void musicVolume_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point p1 = e.GetPosition(musicVolume);
+            musicVolume.Value = p1.X;
+            wplayer.settings.volume = (int)musicVolume.Value;
+            e.Handled = true;
+        }
+
+
+        //关闭窗口
         protected override void OnClosing(CancelEventArgs e)
         {
-            PlayerLyricThread.Abort();
-            wplayer.controls.stop();
+            if (wplayer != null)
+                wplayer.controls.stop();
             base.OnClosing(e);
         }
+
 
         //上传音乐
         private void uploadMusic_Click(object sender, RoutedEventArgs e)
@@ -169,6 +213,8 @@ namespace CherryStudio
             }
         }
 
+
+        //双击音乐列表项播放音乐
         private void musiclist_MouseDoubleClick(object sender, RoutedEventArgs e)
         {
             int selectIndex = musiclist.SelectedIndex;
@@ -181,43 +227,32 @@ namespace CherryStudio
                 }
                 if (musiclist.ItemsSource == favourite_list)
                 {
-                    wplayer.URL = favorurlList[selectIndex];
+                    wplayer.URL = favourList[selectIndex];
                     musicName.Text = favourite_list[selectIndex].Name.ToString();
                 }
 
-                wplayer.controls.play();               
-                timer.Start();               
+                wplayer.controls.play();
+                timer.Start();
 
-
-                if (lyric_window == null)
-                {
-                    lyric_window = new LyricWindow();
-                    lyric_window.Owner = this;
-                    lyric_window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                    lyric_window.Show();
-                }
-
-                if (PlayerLyricThread != null && PlayerLyricThread.IsAlive)
-                    PlayerLyricThread.Abort();
-                PlayerLyricThread = new Thread(new ParameterizedThreadStart(LyricControl));
                 if (musiclist.ItemsSource == items)
                 {
-                    PlayerLyricThread.Start(urlList[selectIndex]);
+                    LoadLyric(urlList[selectIndex]);
                 }
                 if (musiclist.ItemsSource == favourite_list)
                 {
-                    PlayerLyricThread.Start(favorurlList[selectIndex]);
+                    LoadLyric(favourList[selectIndex]);
                 }
-
             }
         }
+
 
         //点击播放按钮开始播放歌曲
         private void btnPlay_Click(object sender, RoutedEventArgs e)
         {
+            //如果已有选中项
             if (musiclist.SelectedIndex != -1)
             {
-                if (wplayer.URL == urlList[musiclist.SelectedIndex])
+                if (musiclist.ItemsSource == items && wplayer.URL == urlList[musiclist.SelectedIndex])
                 {
                     if (wplayer.playState == WMPLib.WMPPlayState.wmppsPaused)
                     {
@@ -225,64 +260,179 @@ namespace CherryStudio
                         wplayer.controls.play();
                     }
                 }
+				else if (musiclist.ItemsSource == favourList && wplayer.URL == favourList[musiclist.SelectedIndex])
+				{
+					if (wplayer.playState == WMPLib.WMPPlayState.wmppsPaused)
+                    {
+                        wplayer.controls.currentPosition = currentTime;
+                        wplayer.controls.play();
+                    }
+				}
                 else
                 {
-                    wplayer.URL = urlList[musiclist.SelectedIndex];
+                    if (musiclist.ItemsSource == items)
+                    {
+                        wplayer.URL = urlList[musiclist.SelectedIndex];
+                        musicName.Text = items[musiclist.SelectedIndex].Name.ToString();
+                    }
+                    if (musiclist.ItemsSource == favourite_list)
+                    {
+                        wplayer.URL = favourList[musiclist.SelectedIndex];
+                        musicName.Text = favourite_list[musiclist.SelectedIndex].Name.ToString();
+                    }
+
                     wplayer.controls.play();
+                    timer.Start();
+
+                    if (musiclist.ItemsSource == items)
+                    {
+                        LoadLyric(urlList[musiclist.SelectedIndex]);
+                    }
+                    if (musiclist.ItemsSource == favourite_list)
+                    {
+                        LoadLyric(favourList[musiclist.SelectedIndex]);
+                    }
                 }
             }
             else
             {
-                if (wplayer.URL != null)
-                    wplayer.controls.play();
+                if (String.IsNullOrEmpty(wplayer.URL))
+                {
+                    //选择第一项
+                    musiclist.SelectedIndex ++;
+                    if (musiclist.ItemsSource == items)
+                    {
+                        wplayer.URL = urlList[0];
+                        LoadLyric(urlList[0]);
+                        musicName.Text = items[0].Name.ToString();
+                        wplayer.controls.play();
+                    }
+                    if (musiclist.ItemsSource == favourite_list)
+                    {
+                        wplayer.URL = favourList[0];
+                        LoadLyric(favourList[0]);
+                        musicName.Text = favourite_list[0].Name.ToString();
+                        wplayer.controls.play();
+                    }
+                    timer.Start();
+                }
+                    
             }
 
         }
+
+
         //上一首
         private void btnPrevious_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = musiclist.SelectedIndex - 1;
             musiclist.SelectedIndex = selectedIndex < 0 ? selectedIndex = 0 : selectedIndex;
-            wplayer.URL = urlList[selectedIndex];
+
+			if (musiclist.ItemsSource == items)
+			{
+                wplayer.URL = urlList[selectedIndex];
+                musicName.Text = items[selectedIndex].Name.ToString();
+                LoadLyric(urlList[musiclist.SelectedIndex]);
+            }
+			if (musiclist.ItemsSource == favourite_list)
+			{
+                wplayer.URL = favourList[selectedIndex];
+                musicName.Text = favourite_list[selectedIndex].Name.ToString();
+                LoadLyric(favourList[musiclist.SelectedIndex]);
+            }
             wplayer.controls.play();
         }
+
+
         //下一首
         private void btnNext_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = musiclist.SelectedIndex + 1;
             musiclist.SelectedIndex = selectedIndex == musiclist.Items.Count ? selectedIndex = musiclist.Items.Count - 1 : selectedIndex;
-            wplayer.URL = urlList[selectedIndex];
+            //wplayer.URL = urlList[selectedIndex];
+			if (musiclist.ItemsSource == items)
+			{
+                wplayer.URL = urlList[selectedIndex];
+                musicName.Text = items[selectedIndex].Name.ToString();
+                LoadLyric(urlList[musiclist.SelectedIndex]);
+            }
+			if (musiclist.ItemsSource == favourite_list)
+			{
+                wplayer.URL = favourList[selectedIndex];
+                musicName.Text = favourite_list[selectedIndex].Name.ToString();
+                LoadLyric(favourList[musiclist.SelectedIndex]);
+            }
             wplayer.controls.play();
         }
+
+
         //暂停
         private void btnPause_Click(object sender, RoutedEventArgs e)
         {
             currentTime = wplayer.controls.currentPosition;
             wplayer.controls.pause();
         }
-       
+
+
+        //收藏歌曲至“我喜爱的音乐”列表
         private void btnLike(object sender, RoutedEventArgs e)
         {
-            if (musiclist.SelectedIndex != -1)
+            string url="";
+            if(musiclist.ItemsSource == items)
             {
-                favourite_list.Add((musicInfo)items[musiclist.SelectedIndex].Clone());
-                favorurlList.Add(items[musiclist.SelectedIndex].Url);
+                url = items[musiclist.SelectedIndex].Url;
             }
-                
+            if (musiclist.ItemsSource == favourite_list)
+            {
+                url = favourite_list[musiclist.SelectedIndex].Url;
+            }
+
+            int startIndex = url.LastIndexOf('\\') + 1;
+            int length = url.Length - startIndex - 4;
+            string name = url.Substring(startIndex, length);
+            favourite_list.Add(new musicInfo { Name = name, Url = url });
+            favourList.Add(url);
         }
 
+
+        //显示“我喜爱的音乐”列表
         private void btnShowLiked(object sender, RoutedEventArgs e)
         {
             musiclist.ItemsSource = favourite_list;
             musiclist.Items.Refresh();
         }
 
+
+        //显示“我的音乐”列表
         private void btnShowItemsList(object sender, RoutedEventArgs e)
         {
             musiclist.ItemsSource = items;
             musiclist.Items.Refresh();
         }
-        //删除歌曲列表中的歌
+
+
+        //显示歌词
+        private void btnLyricShow(object sender, RoutedEventArgs e)
+        {
+            if (lyric_window != null && lyric_window.Visibility == Visibility.Hidden)
+            {
+                lyric_window.Visibility = Visibility.Visible;
+            }
+        }
+
+
+        //倍速
+        private void btnSpeed(object sender, RoutedEventArgs e)
+        {
+            double position = wplayer.controls.currentPosition;
+            wplayer.controls.pause();
+            wplayer.settings.rate = wplayer.settings.rate == 1 ? 1.5 : 1;
+            wplayer.controls.currentPosition = position;
+            wplayer.controls.play();
+        }
+
+ 
+        //删除歌曲
         private void delete_Click(object sender, RoutedEventArgs e)
         {
             int i = musiclist.SelectedIndex;
@@ -298,34 +448,29 @@ namespace CherryStudio
                 favourite_list.Remove(favourite_list[i]);
                 musiclist.ItemsSource = favourite_list;
                 musiclist.Items.Refresh();
-                favorurlList.Remove(favorurlList[i]);
+                favourList.Remove(favourList[i]);
             }
-        }
-        //有问题（进度条拖动/歌曲没动）
-        private void progressBar_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            Point p0 = e.GetPosition(musicProgress);
-            musicProgress.Value = (p0.X / musicProgress.Width) * max;
-            min = musicProgress.Value;
-            e.Handled = true;
-        }
-        //有问题（进度条拖动/歌曲没动）
-        private void progressBar_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            timer.Stop();
-            currentTime = musicProgress.Value;
-            timer.Start();
-
+            btnNext.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
 
-        private void LyricControl(object data)
+
+        //歌词加载
+        private LyricFile lyric_file;
+        private void LoadLyric(string url)
         {
-            string url = (string)data;
+            if (lyric_window == null)
+            {
+                lyric_window = new LyricWindow();
+                lyric_window.Owner = this;
+                lyric_window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                lyric_window.Show();
+            }
+
             int startIndex = url.LastIndexOf('\\') + 1;
             int length = url.Length - startIndex - 4;
             string filepath = url.Substring(startIndex, length);
-            LyricFile lyric_file = new LyricFile();
 
+            lyric_file = new LyricFile();
             if (!File.Exists("./lyrics/" + filepath + ".lrc"))
             {
                 Action action = () => lyric_window.Lyric.Content = "无歌词";
@@ -337,18 +482,38 @@ namespace CherryStudio
                 return;
             }
 
-            lyric_file.LoadFromFile("./lyrics/"+filepath+".lrc");
+            lyric_file.LoadFromFile("./lyrics/" + filepath + ".lrc");
+        }
 
-            Thread.Sleep(1000);
+
+        //歌手分类
+        private void selectSinger_Click(object sender, RoutedEventArgs e)
+        {
+            musiclist.Items.Refresh();
+        }
+
+
+        //专辑分类
+        private void selectAlbum_Click(object sender, RoutedEventArgs e)
+        {
+            musiclist.Items.Refresh();
+        }
+
+
+        //歌词控制
+        void LyricControl(object sender, EventArgs e)
+        {
             Func<LyricFile> lf = () => lyric_file;
-            for (lf().pos = 0; lf().pos < lf().lyrics.Count;)
+            if (wplayer.playState != WMPPlayState.wmppsPlaying)
+                return;
+            string curposString = wplayer.controls.currentPositionString;
+
+            int minute = int.Parse(curposString.Split(':')[0]);
+            int second = int.Parse(curposString.Split(':')[1]);
+            int cur = minute * 60 + second;
+
+            for (; lf().pos < lf().lyrics.Count;)
             {
-                string curposString = wplayer.controls.currentPositionString;
-
-                int minute = int.Parse(curposString.Split(':')[0]);
-                int second = int.Parse(curposString.Split(':')[1]);
-                int cur = minute * 60 + second;
-
                 if (cur >= lf().lyrics[lf().pos].minute * 60 + lf().lyrics[lf().pos].second)
                 {
                     Action action = () => lyric_window.Lyric.Content = lf().lyrics[lf().pos].strLyric;
@@ -359,6 +524,8 @@ namespace CherryStudio
                         dispatcher.Invoke(action);
                     lf().pos++;
                 }
+                else
+                    break;
             }
         }
     }

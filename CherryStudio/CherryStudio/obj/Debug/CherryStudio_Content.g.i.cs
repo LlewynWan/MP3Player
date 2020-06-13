@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("musicpic_default.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("cherrystudio.ico")]
 
 
